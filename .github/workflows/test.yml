@@ -1,0 +1,27 @@
+name: Test formulae
+
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: "0 6 * * 1"
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, macos-13]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Tap this checkout
+        run: |
+          mkdir -p "$(brew --repository)/Library/Taps/bircher988"
+          ln -s "$GITHUB_WORKSPACE" "$(brew --repository)/Library/Taps/bircher988/homebrew-tap"
+      - name: Install from source
+        run: brew install --build-from-source bircher988/tap/mac68k-asm bircher988/tap/mac68k-disk
+      - name: Test
+        run: brew test bircher988/tap/mac68k-asm bircher988/tap/mac68k-disk
+      - name: Audit
+        run: brew audit --strict bircher988/tap/mac68k-asm bircher988/tap/mac68k-disk
